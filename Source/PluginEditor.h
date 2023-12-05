@@ -35,9 +35,9 @@ private:
     juce::AudioProcessorValueTreeState& valueTreeState;
 
     juce::Label ZeroPassesTextBox;
-    juce::Label TODO1TextBox;
-    juce::Label TODO2TextBox;
-    juce::Label TODO3TextBox;
+    juce::Label RmsTextBox;
+    juce::Label MinTextBox;
+    juce::Label MaxTextBox;
 
     juce::TextButton resetButton;
     juce::TextButton updateButton;

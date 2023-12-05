@@ -62,9 +62,15 @@ public:
 
 private:
     std::atomic<float>* zero_passes = nullptr;
+    std::atomic<float>* rms = nullptr;
+    std::atomic<float>* min = nullptr;
+    std::atomic<float>* max = nullptr;
 
     std::unique_ptr<float[]> previous_samples = nullptr;
     std::unique_ptr<unsigned int> previous_length = nullptr;
+
+    std::unique_ptr<long long unsigned int[]> samples_count_per_channel = nullptr;
+    std::unique_ptr<float[]> square_sum_per_channel = nullptr;
 
     juce::AudioProcessorValueTreeState valueTreeState;
 

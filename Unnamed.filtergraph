@@ -61,11 +61,11 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="22" x="0.51125" y="0.3971774193548387" useARA="0" uiLastX_Normal="503"
-          uiLastY_Normal="345" uiopen_Normal="0">
+  <FILTER uid="21" x="0.4975" y="0.4507389162561576" useARA="0" uiLastX_Normal="225"
+          uiLastY_Normal="414" uiopen_Normal="0">
     <PLUGIN name="AudioStatisticsPlugin" format="VST3" category="Fx" manufacturer="yourcompany"
             version="1.0.0" file="D:\AudioStatisticsPlugin\Builds\VisualStudio2022\x64\Debug\VST3\AudioStatisticsPlugin.vst3\Contents\x86_64-win\AudioStatisticsPlugin.vst3"
-            uniqueId="f7a1e52b" isInstrument="0" fileTime="18c2c34e2ab" infoUpdateTime="18c2c36fa19"
+            uniqueId="f7a1e52b" isInstrument="0" fileTime="18c3ba1a654" infoUpdateTime="18c3ba3862c"
             numInputs="2" numOutputs="2" isShell="0" hasARAExtension="0"
             uid="e955c40b"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
@@ -78,4 +78,5 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
+  <CONNECTION srcFilter="17" srcChannel="0" dstFilter="21" dstChannel="0"/>
 </FILTERGRAPH>

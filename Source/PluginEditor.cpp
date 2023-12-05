@@ -15,9 +15,9 @@ AudioStatisticsPluginAudioProcessorEditor::AudioStatisticsPluginAudioProcessorEd
 {
     updateValues();
     addAndMakeVisible(&ZeroPassesTextBox);
-    addAndMakeVisible(&TODO1TextBox);
-    addAndMakeVisible(&TODO2TextBox);
-    addAndMakeVisible(&TODO3TextBox);
+    addAndMakeVisible(&RmsTextBox);
+    addAndMakeVisible(&MinTextBox);
+    addAndMakeVisible(&MaxTextBox);
 
 
 
@@ -45,9 +45,9 @@ void AudioStatisticsPluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     ZeroPassesTextBox.setBounds(10, 10, 500, 20);
-    TODO1TextBox.setBounds(10, 40, 500, 20);
-    TODO2TextBox.setBounds(10, 70, 500, 20);
-    TODO3TextBox.setBounds(10, 100, 500, 20);
+    RmsTextBox.setBounds(10, 40, 500, 20);
+    MinTextBox.setBounds(10, 70, 500, 20);
+    MaxTextBox.setBounds(10, 100, 500, 20);
 
     resetButton.setBounds(getWidth()/2+10, getHeight() - 60, getWidth() / 2 -20, 50);
     updateButton.setBounds(10, getHeight() - 60, getWidth() / 2 - 20, 50);
@@ -64,9 +64,9 @@ void AudioStatisticsPluginAudioProcessorEditor::resized()
 void AudioStatisticsPluginAudioProcessorEditor::updateValues()
 {
     ZeroPassesTextBox.setText("Zero Passes: " + parameterToString("zero_passes"), juce::NotificationType::dontSendNotification);
-    TODO1TextBox.setText("TODO 1: ", juce::NotificationType::dontSendNotification);
-    TODO2TextBox.setText("TODO 2: ", juce::NotificationType::dontSendNotification);
-    TODO3TextBox.setText("TODO 3: ", juce::NotificationType::dontSendNotification);
+    RmsTextBox.setText("RMS: " + parameterToString("rms"), juce::NotificationType::dontSendNotification);
+    MinTextBox.setText("MIN: " + parameterToString("min"), juce::NotificationType::dontSendNotification);
+    MaxTextBox.setText("MAX: " + parameterToString("max"), juce::NotificationType::dontSendNotification);
 }
 
 std::string AudioStatisticsPluginAudioProcessorEditor::parameterToString(std::string param_name)

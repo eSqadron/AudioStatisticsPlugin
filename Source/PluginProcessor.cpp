@@ -22,16 +22,35 @@ AudioStatisticsPluginAudioProcessor::AudioStatisticsPluginAudioProcessor()
                        ),
     valueTreeState(*this, nullptr, juce::Identifier("Statistics"),
                            {
-                               std::make_unique<juce::AudioParameterInt>("zero_passes",            // parameterID
+                                std::make_unique<juce::AudioParameterInt>("zero_passes",            // parameterID
                                                                             "ZeroPasses",            // parameter name
                                                                             0,              // minimum value
                                                                             3.402823466e+38,              // maximum value
-                                                                            0)
+                                                                            0),
+                                std::make_unique<juce::AudioParameterFloat>("rms",            // parameterID
+                                                                            "RMS",            // parameter name
+                                                                            -200,              // minimum value
+                                                                            200,              // maximum value
+                                                                            0),
+                                std::make_unique<juce::AudioParameterFloat>("max",            // parameterID
+                                                                            "Max",            // parameter name
+                                                                            -200,              // minimum value
+                                                                            200,              // maximum value
+                                                                            -200),
+                                std::make_unique<juce::AudioParameterFloat>("min",            // parameterID
+                                                                            "Min",            // parameter name
+                                                                            -200,              // minimum value
+                                                                            200,              // maximum value
+                                                                            200)
                            })
 #endif
 {
     zero_passes = valueTreeState.getRawParameterValue("zero_passes");
-    zero_passes->store(0);
+    rms = valueTreeState.getRawParameterValue("rms");
+    min = valueTreeState.getRawParameterValue("min");
+    max = valueTreeState.getRawParameterValue("max");
+    clearCounters();
+    
 }
 
 AudioStatisticsPluginAudioProcessor::~AudioStatisticsPluginAudioProcessor()
@@ -157,12 +176,21 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
 
     if (previous_length == nullptr || *previous_length != totalNumInputChannels) {
         previous_length.reset(new unsigned int(totalNumInputChannels));
+
+        samples_count_per_channel.reset(new long long unsigned int[totalNumInputChannels]);
+        square_sum_per_channel.reset(new float[totalNumInputChannels]);
+
         previous_samples.reset(new float[totalNumInputChannels]);
         for (int channel = 0; channel < totalNumInputChannels; ++channel)
         {
             previous_samples[channel] = *buffer.getWritePointer(channel);
+            //samples_count_per_channel[channel] = 0;
+            //square_sum_per_channel[channel] = 0;
         }
+
     }
+
+    float temp_rms = 0;
        
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
@@ -171,13 +199,28 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
 
             if ((previous_samples[channel] * (*i)) < 0) {
                 zero_passes->store(zero_passes->load() + 1);
-                //(*zero_passes) = (*zero_passes)+1;
+            }
+
+            // RMS
+            samples_count_per_channel[channel]++;
+            square_sum_per_channel[channel] += (*i * *i);
+
+            // Min Max
+            if (*i > max->load()) {
+                max->store(*i);
+            }
+            if (*i < min->load()) {
+                min->store(*i);
             }
 
             previous_samples[channel] = *i;
         }
+
+        temp_rms = temp_rms + std::sqrt(square_sum_per_channel[channel] / samples_count_per_channel[channel]);
         
     }
+
+    rms->store(temp_rms * 1.0 / totalNumInputChannels);
 
 
 }
@@ -209,7 +252,26 @@ void AudioStatisticsPluginAudioProcessor::setStateInformation (const void* data,
 
 void AudioStatisticsPluginAudioProcessor::clearCounters()
 {
-    *zero_passes = 0;
+    zero_passes->store(0);
+    rms->store(-std::numeric_limits<double>::infinity());
+
+    min->store(std::numeric_limits<double>::infinity());
+    max->store(-std::numeric_limits<double>::infinity());
+
+    if (previous_length == nullptr) {
+        return;
+    }
+
+    int channel_len = *previous_length.get();
+
+    samples_count_per_channel.reset(new long long unsigned int[channel_len]);
+    square_sum_per_channel.reset(new float[channel_len]);
+
+    for (int channel = 0; channel < channel_len; ++channel)
+    {
+        samples_count_per_channel[channel] = 0;
+        square_sum_per_channel[channel] = 0;
+    }
 }
 
 //==============================================================================
