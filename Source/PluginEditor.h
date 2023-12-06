@@ -14,7 +14,7 @@
 //==============================================================================
 /**
 */
-class AudioStatisticsPluginAudioProcessorEditor  : public juce::AudioProcessorEditor
+class AudioStatisticsPluginAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
     AudioStatisticsPluginAudioProcessorEditor (AudioStatisticsPluginAudioProcessor&, juce::AudioProcessorValueTreeState&);
@@ -28,6 +28,8 @@ public:
 
     std::string parameterToString(std::string param_name);
 
+    void timerCallback() override;
+
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -38,6 +40,7 @@ private:
     juce::Label RmsTextBox;
     juce::Label MinTextBox;
     juce::Label MaxTextBox;
+    juce::Label MomentaryLoudnessBox;
 
     juce::TextButton resetButton;
     juce::TextButton updateButton;

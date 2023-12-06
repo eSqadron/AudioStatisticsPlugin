@@ -58,9 +58,21 @@ public:
 
     void clearCounters();
 
-    //std::unique_ptr<long long unsigned int> zero_passes = nullptr;
+    juce::IIRFilter filter1;
+    juce::IIRFilter filter2;
+    //juce::dsp::ProcessorDuplicator <juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients <float>> filter1;
+    //juce::dsp::IIR::Filter<float> filter2;
 
 private:
+    double sampleRate = 0.0;
+
+    unsigned int lufs_counter = 0;
+    std::vector<std::vector<float>> lufs_container;
+
+    std::vector<float> momentary_power;
+
+    std::atomic<float>* last_momentary_loudness = nullptr;
+
     std::atomic<float>* zero_passes = nullptr;
     std::atomic<float>* rms = nullptr;
     std::atomic<float>* min = nullptr;

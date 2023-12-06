@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <FILTERGRAPH>
-  <FILTER uid="17" x="0.5" y="0.1" useARA="0">
+  <FILTER uid="12" x="0.5" y="0.1" useARA="0">
     <PLUGIN name="Audio Input" descriptiveName="" format="Internal" category="I/O devices"
             manufacturer="JUCE" version="1.0" file="" uniqueId="246006c0"
             isInstrument="0" fileTime="0" infoUpdateTime="0" numInputs="0"
@@ -16,7 +16,7 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="18" x="0.25" y="0.1" useARA="0">
+  <FILTER uid="13" x="0.25" y="0.1" useARA="0">
     <PLUGIN name="MIDI Input" descriptiveName="" format="Internal" category="I/O devices"
             manufacturer="JUCE" version="1.0" file="" uniqueId="a9e4f9eb"
             isInstrument="0" fileTime="0" infoUpdateTime="0" numInputs="0"
@@ -31,7 +31,7 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="19" x="0.5" y="0.9" useARA="0">
+  <FILTER uid="14" x="0.5" y="0.9" useARA="0">
     <PLUGIN name="Audio Output" descriptiveName="" format="Internal" category="I/O devices"
             manufacturer="JUCE" version="1.0" file="" uniqueId="724248cb"
             isInstrument="0" fileTime="0" infoUpdateTime="0" numInputs="2"
@@ -46,7 +46,7 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="20" x="0.25" y="0.9" useARA="0">
+  <FILTER uid="15" x="0.25" y="0.9" useARA="0">
     <PLUGIN name="MIDI Output" descriptiveName="" format="Internal" category="I/O devices"
             manufacturer="JUCE" version="1.0" file="" uniqueId="9d5bbb00"
             isInstrument="0" fileTime="0" infoUpdateTime="0" numInputs="0"
@@ -61,22 +61,4 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="21" x="0.4975" y="0.4507389162561576" useARA="0" uiLastX_Normal="225"
-          uiLastY_Normal="414" uiopen_Normal="0">
-    <PLUGIN name="AudioStatisticsPlugin" format="VST3" category="Fx" manufacturer="yourcompany"
-            version="1.0.0" file="D:\AudioStatisticsPlugin\Builds\VisualStudio2022\x64\Debug\VST3\AudioStatisticsPlugin.vst3\Contents\x86_64-win\AudioStatisticsPlugin.vst3"
-            uniqueId="f7a1e52b" isInstrument="0" fileTime="18c3ba1a654" infoUpdateTime="18c3ba3862c"
-            numInputs="2" numOutputs="2" isShell="0" hasARAExtension="0"
-            uid="e955c40b"/>
-    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
-    <LAYOUT>
-      <INPUTS>
-        <BUS index="0" layout="L R"/>
-      </INPUTS>
-      <OUTPUTS>
-        <BUS index="0" layout="L R"/>
-      </OUTPUTS>
-    </LAYOUT>
-  </FILTER>
-  <CONNECTION srcFilter="17" srcChannel="0" dstFilter="21" dstChannel="0"/>
 </FILTERGRAPH>

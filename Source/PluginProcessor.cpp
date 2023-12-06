@@ -41,16 +41,35 @@ AudioStatisticsPluginAudioProcessor::AudioStatisticsPluginAudioProcessor()
                                                                             "Min",            // parameter name
                                                                             -200,              // minimum value
                                                                             200,              // maximum value
-                                                                            200)
-                           })
+                                                                            200),
+                                std::make_unique<juce::AudioParameterFloat>("momentary_loudness",            // parameterID
+                                                                            "MomentaryLoudness",            // parameter name
+                                                                            -20000,              // minimum value
+                                                                            20000,              // maximum value
+                                                                            -20000)
+
+                           }),
+    filter1(),
+    filter2(),
+    lufs_container()
+    //filter2(juce::dsp::IIR::Coefficients<float>(
+    //    1.0,               // b0
+    //    -2.0,              // b1
+    //    1.0,
+    //    0.0,
+    //    -1.99004745483398, // a1
+    //    0.99007225036621))
 #endif
 {
     zero_passes = valueTreeState.getRawParameterValue("zero_passes");
     rms = valueTreeState.getRawParameterValue("rms");
     min = valueTreeState.getRawParameterValue("min");
     max = valueTreeState.getRawParameterValue("max");
+    last_momentary_loudness = valueTreeState.getRawParameterValue("momentary_loudness");
     clearCounters();
-    
+
+    filter1.setCoefficients(juce::IIRCoefficients(1.53512485958697, -2.69169618940638, 1.19839281085285, 0.0, -1.69065929318241, 0.73248077421585));
+    filter2.setCoefficients(juce::IIRCoefficients(1.0, -2.0, 1.0, 0.0, -1.99004745483398, 0.99007225036621));
 }
 
 AudioStatisticsPluginAudioProcessor::~AudioStatisticsPluginAudioProcessor()
@@ -122,8 +141,7 @@ void AudioStatisticsPluginAudioProcessor::changeProgramName (int index, const ju
 //==============================================================================
 void AudioStatisticsPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    this->sampleRate = sampleRate;
 }
 
 void AudioStatisticsPluginAudioProcessor::releaseResources()
@@ -217,10 +235,71 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
         }
 
         temp_rms = temp_rms + std::sqrt(square_sum_per_channel[channel] / samples_count_per_channel[channel]);
-        
-    }
 
+        // LUFS
+        if (channel == 0) {
+            //https://www.mathworks.com/help/audio/ref/integratedloudness.html
+            //https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1770-5-202311-I!!PDF-E.pdf
+
+
+
+            float* channelData_copy = new float[samplesNum];
+            memcpy(channelData_copy, channelData, sizeof(float) * samplesNum);
+
+            filter1.processSamples(channelData_copy, samplesNum);
+            filter2.processSamples(channelData_copy, samplesNum);
+
+            for (float* i = channelData; i < channelData + samplesNum; i++) {
+                if (lufs_counter == 0) {
+                    lufs_container.push_back(std::vector<float>());
+                }
+
+                lufs_container.back().push_back(*i);
+                lufs_counter += 1;
+            
+                if (lufs_counter >= sampleRate / 10 ) {
+                    lufs_counter = 0;
+                }
+            }
+
+            while (lufs_container.size() > 4) {
+                unsigned int sample_counter = 0;
+                float short_rms = 0.0;
+                for (auto row = lufs_container.begin(); row < lufs_container.begin() + 4; row++){
+                    for (auto i = row->begin(); i < row->end(); i++) {
+                        short_rms = short_rms + (*i * *i);
+                        sample_counter++;
+                    }
+                }
+                lufs_container.erase(lufs_container.begin());
+
+                short_rms = short_rms / (sample_counter);
+
+                float momentary_loudness = -0.691 + 10 * std::log10(short_rms);
+
+                if (momentary_loudness >= -70) {
+                    last_momentary_loudness->store(momentary_loudness);
+                }
+                else {
+                    last_momentary_loudness->store(-std::numeric_limits<double>::infinity());
+                }
+            }
+        }
+
+
+    }
     rms->store(temp_rms * 1.0 / totalNumInputChannels);
+
+
+     
+    //juce::AudioBuffer<float> newBuffer;
+    //newBuffer.makeCopyOf(buffer);
+
+    //juce::dsp::AudioBlock <float> block(newBuffer);
+    //filter1.process(juce::dsp::ProcessContextReplacing<float>(block));
+    //filter2.process(juce::dsp::ProcessContextReplacing<float>(block));
+
+
 
 
 }
@@ -257,6 +336,7 @@ void AudioStatisticsPluginAudioProcessor::clearCounters()
 
     min->store(std::numeric_limits<double>::infinity());
     max->store(-std::numeric_limits<double>::infinity());
+    last_momentary_loudness->store(-std::numeric_limits<double>::infinity());
 
     if (previous_length == nullptr) {
         return;
