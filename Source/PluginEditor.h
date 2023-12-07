@@ -36,11 +36,14 @@ private:
     AudioStatisticsPluginAudioProcessor& audioProcessor;
     juce::AudioProcessorValueTreeState& valueTreeState;
 
+    // TODO - https://docs.juce.com/master/tutorial_audio_thumbnail.html
+
     juce::Label ZeroPassesTextBox;
     juce::Label RmsTextBox;
     juce::Label MinTextBox;
     juce::Label MaxTextBox;
     juce::Label MomentaryLoudnessBox;
+    juce::Label IntegratedLoudnessBox;
 
     juce::TextButton resetButton;
     juce::TextButton updateButton;

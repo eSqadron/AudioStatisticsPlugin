@@ -60,18 +60,20 @@ public:
 
     juce::IIRFilter filter1;
     juce::IIRFilter filter2;
-    //juce::dsp::ProcessorDuplicator <juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients <float>> filter1;
-    //juce::dsp::IIR::Filter<float> filter2;
 
 private:
     double sampleRate = 0.0;
-
     unsigned int lufs_counter = 0;
+
+    float momentary_power_sum = 0.0;
+    unsigned int momentary_power_count = 0;
+
     std::vector<std::vector<float>> lufs_container;
 
     std::vector<float> momentary_power;
 
     std::atomic<float>* last_momentary_loudness = nullptr;
+    std::atomic<float>* integrated_loudness = nullptr;
 
     std::atomic<float>* zero_passes = nullptr;
     std::atomic<float>* rms = nullptr;

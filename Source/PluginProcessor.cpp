@@ -46,19 +46,17 @@ AudioStatisticsPluginAudioProcessor::AudioStatisticsPluginAudioProcessor()
                                                                             "MomentaryLoudness",            // parameter name
                                                                             -20000,              // minimum value
                                                                             20000,              // maximum value
+                                                                            -20000),
+                                std::make_unique<juce::AudioParameterFloat>("integrated_loudness",            // parameterID
+                                                                            "IntegratedLoudness",            // parameter name
+                                                                            -20000,              // minimum value
+                                                                            20000,              // maximum value
                                                                             -20000)
 
                            }),
     filter1(),
     filter2(),
     lufs_container()
-    //filter2(juce::dsp::IIR::Coefficients<float>(
-    //    1.0,               // b0
-    //    -2.0,              // b1
-    //    1.0,
-    //    0.0,
-    //    -1.99004745483398, // a1
-    //    0.99007225036621))
 #endif
 {
     zero_passes = valueTreeState.getRawParameterValue("zero_passes");
@@ -66,6 +64,7 @@ AudioStatisticsPluginAudioProcessor::AudioStatisticsPluginAudioProcessor()
     min = valueTreeState.getRawParameterValue("min");
     max = valueTreeState.getRawParameterValue("max");
     last_momentary_loudness = valueTreeState.getRawParameterValue("momentary_loudness");
+    integrated_loudness = valueTreeState.getRawParameterValue("integrated_loudness");
     clearCounters();
 
     filter1.setCoefficients(juce::IIRCoefficients(1.53512485958697, -2.69169618940638, 1.19839281085285, 0.0, -1.69065929318241, 0.73248077421585));
@@ -265,23 +264,27 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
             while (lufs_container.size() > 4) {
                 unsigned int sample_counter = 0;
                 float short_rms = 0.0;
+                float short_mean_momentary_power = 0.0;
                 for (auto row = lufs_container.begin(); row < lufs_container.begin() + 4; row++){
                     for (auto i = row->begin(); i < row->end(); i++) {
                         short_rms = short_rms + (*i * *i);
+                        short_mean_momentary_power += (*i);
                         sample_counter++;
                     }
                 }
                 lufs_container.erase(lufs_container.begin());
 
-                short_rms = short_rms / (sample_counter);
+                short_rms = short_rms / sample_counter;
+                short_mean_momentary_power = short_mean_momentary_power / sample_counter;
 
+                float relative_treshold = -0.691 + 10 * std::log10(short_mean_momentary_power) - 10;
                 float momentary_loudness = -0.691 + 10 * std::log10(short_rms);
 
-                if (momentary_loudness >= -70) {
+                if (momentary_loudness >= -70 && short_rms >= relative_treshold) {
                     last_momentary_loudness->store(momentary_loudness);
-                }
-                else {
-                    last_momentary_loudness->store(-std::numeric_limits<double>::infinity());
+                    momentary_power_sum += short_rms;
+                    momentary_power_count += 1;
+                    integrated_loudness->store(-0.691 + 10 * std::log10(momentary_power_sum / momentary_power_count));
                 }
             }
         }
@@ -337,6 +340,10 @@ void AudioStatisticsPluginAudioProcessor::clearCounters()
     min->store(std::numeric_limits<double>::infinity());
     max->store(-std::numeric_limits<double>::infinity());
     last_momentary_loudness->store(-std::numeric_limits<double>::infinity());
+    integrated_loudness->store(-std::numeric_limits<double>::infinity());
+
+    momentary_power_sum = 0.0;
+    momentary_power_count = 0;
 
     if (previous_length == nullptr) {
         return;

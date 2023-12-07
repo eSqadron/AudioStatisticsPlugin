@@ -61,4 +61,22 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
+  <FILTER uid="16" x="0.4925124792013311" y="0.5175097276264592" useARA="0"
+          uiLastX_Normal="73" uiLastY_Normal="125" uiopen_Normal="0">
+    <PLUGIN name="AudioStatisticsPlugin" format="VST3" category="Fx" manufacturer="yourcompany"
+            version="1.0.0" file="C:\Users\kubam\Documents\AudioStatisticsPlugin\Builds\VisualStudio2022\x64\Debug\VST3\AudioStatisticsPlugin.vst3\Contents\x86_64-win\AudioStatisticsPlugin.vst3"
+            uniqueId="f7a1e52b" isInstrument="0" fileTime="18c43b36f71" infoUpdateTime="18c43bb07a9"
+            numInputs="2" numOutputs="2" isShell="0" hasARAExtension="0"
+            uid="e955c40b"/>
+    <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
+    <LAYOUT>
+      <INPUTS>
+        <BUS index="0" layout="L R"/>
+      </INPUTS>
+      <OUTPUTS>
+        <BUS index="0" layout="L R"/>
+      </OUTPUTS>
+    </LAYOUT>
+  </FILTER>
+  <CONNECTION srcFilter="12" srcChannel="0" dstFilter="16" dstChannel="0"/>
 </FILTERGRAPH>
