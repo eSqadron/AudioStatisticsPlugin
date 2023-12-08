@@ -61,7 +61,6 @@ AudioStatisticsPluginAudioProcessor::AudioStatisticsPluginAudioProcessor()
                            }),
     filter1(),
     filter2(),
-    lufs_container(),
     bin_rms_container(),
     segment_square_sums()
 #endif
@@ -148,8 +147,7 @@ void AudioStatisticsPluginAudioProcessor::changeProgramName (int index, const ju
 //==============================================================================
 void AudioStatisticsPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    this->sampleRate = sampleRate;
-    this->bin_length_in_samples = sampleRate / 10;
+    this->bin_length_in_samples = sampleRate / 10; // calcluate 100ms bin length
 }
 
 void AudioStatisticsPluginAudioProcessor::releaseResources()
@@ -261,21 +259,6 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
 
             // Fill the bins with averages
             for (float* i = channelData; i < channelData + samplesNum; i++) {
-
-                //// OLD VERSION
-                //if (lufs_counter == 0) {
-                //    lufs_container.push_back(std::vector<float>());
-                //}
-
-                //lufs_container.back().push_back(*i);
-                //lufs_counter += 1;
-            
-                //if (lufs_counter >= sampleRate / 10 ) {
-                //    lufs_counter = 0;
-                //}
-
-                // NEW VERSION
-
                 if (current_position_in_filling_bin == 0) {
                     bin_rms_container.push_back(0);
                     //bin_sums.push_back(0);
@@ -340,51 +323,9 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
                     short_term_loudness->store(-0.691 + 10.0 * std::log10(short_term_rms));
                 }
             }
-
-            //while (lufs_container.size() > 4) {
-            //    unsigned int sample_counter = 0;
-            //    float short_rms = 0.0;
-            //    float short_mean_momentary_power = 0.0;
-            //    for (auto row = lufs_container.begin(); row < lufs_container.begin() + 4; row++){
-            //        for (auto i = row->begin(); i < row->end(); i++) {
-            //            short_rms = short_rms + (*i * *i);
-            //            short_mean_momentary_power += (*i);
-            //            sample_counter++;
-            //        }
-            //    }
-            //    lufs_container.erase(lufs_container.begin());
-
-            //    short_rms = short_rms / sample_counter;
-            //    short_mean_momentary_power = short_mean_momentary_power / sample_counter;
-
-            //    float relative_treshold = -0.691 + 10 * std::log10(short_mean_momentary_power) - 10;
-            //    float momentary_loudness = -0.691 + 10 * std::log10(short_rms);
-
-            //    if (momentary_loudness >= -70 && short_rms >= relative_treshold) {
-            //        //last_momentary_loudness->store(momentary_loudness);
-            //        momentary_power_sum += short_rms;
-            //        momentary_power_count += 1;
-            //        //integrated_loudness->store(-0.691 + 10 * std::log10(momentary_power_sum / momentary_power_count));
-            //    }
-            //}
         }
-
-
     }
     rms->store(temp_rms * 1.0 / totalNumInputChannels);
-
-
-     
-    //juce::AudioBuffer<float> newBuffer;
-    //newBuffer.makeCopyOf(buffer);
-
-    //juce::dsp::AudioBlock <float> block(newBuffer);
-    //filter1.process(juce::dsp::ProcessContextReplacing<float>(block));
-    //filter2.process(juce::dsp::ProcessContextReplacing<float>(block));
-
-
-
-
 }
 
 //==============================================================================
@@ -428,8 +369,9 @@ void AudioStatisticsPluginAudioProcessor::clearCounters()
     segment_square_sums.clear();
     current_position_in_filling_bin = 0;
 
-    //momentary_power_sum = 0.0;
-    //momentary_power_count = 0;
+    relative_threshold_acumulator = 0.0;
+    relative_threshold_segments_count = 0;
+
 
     if (previous_length == nullptr) {
         return;

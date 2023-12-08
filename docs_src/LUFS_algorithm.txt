@@ -1,0 +1,53 @@
+@startuml
+
+top to bottom direction
+
+skin rose
+skinparam linetype ortho
+
+title Conditional - Activity Diagram 
+
+rectangle "Filters" as r1
+
+rectangle "Fill bins - 100ms containers" as r2{
+  rectangle "push back new empty bin\nbin.push_back(0.0)" as r21
+  rectangle "Acumulate squares of samples in a bin\nbin[i]+= sample*sample" as r22
+  rectangle "Divide by number of samples in a single bin\nbin[i]/bin_size;\ni++" as r23
+  
+  r21 -down-> r22
+  r22 -down-> r23
+  r23 -down-> r21
+}
+
+rectangle "For each new fully filled bin over 3 bins" as r3
+rectangle "Calculate momentary (400ms) RMS\n[new 100ms + 300ms overlap over previous segments]" as r4
+rectangle "Calculate momentary loudness" as r5
+rectangle "Gate 1: momentary_loudness > -70" as r6
+rectangle "Calculate average of all segments' RMSes\n[Accumulate only segments that passed the gate]\n[Include 300ms overlap]" as r7
+rectangle "Display last momentary loudness that passed the gate" as r8
+rectangle "Calculate relative threshold\n-10.691 + 10.0*log10(RMS of all the segments)" as r9
+rectangle "Gate 2: RMS of 400ms segment > relative threshold" as r10
+rectangle "Accumulate RMS of 400ms segment that passed both gates" as r11
+rectangle "Calculate integrated loudness\n-0.691 + 10.0*log10(average of all segments RMSes)" as r12
+
+
+r1 -down-> r2: Stream of samples [-1; 1]
+r2 -down-> r3
+r3 -down-> r4: RMS of 400ms segment [-1; 1]
+r4 --> r5
+
+r4 -down-> r6: RMS of 400ms segment [-1; 1]
+r5 -down-> r6: Momentary loudness (of 400ms) segment [LUFS]
+
+r6 -right-> r8
+r6 -down-> r7: RMS of 400ms segment [-1; 1]
+
+r7 -down-> r9: average of all segments' RMSes
+
+r6 -down-> r10: RMS of 400ms segment [-1; 1]
+r9 -down-> r10: Relative threshold
+r10 -down-> r11: RMS of 400ms segment [-1; 1]
+r11 -down-> r12: Container of segments RMSes that passed both gates
+
+
+@enduml

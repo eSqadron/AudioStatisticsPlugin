@@ -77,18 +77,9 @@ private:
     unsigned short int bins_in_3s = 30; // Number of bins that form Short Term Loudness
     unsigned long long int processed_bin_counter = bins_in_400ms-1; // counter of already processed bins. Processing starts at bin bins_in_400ms (value 4), so default is bins_in_400ms-1 (value 3)
 
+    // Accumulators for calculating relative_thresholds
     float relative_threshold_acumulator = 0.0;
     unsigned long int relative_threshold_segments_count = 0;
-
-    double sampleRate = 0.0;
-    unsigned int lufs_counter = 0;
-
-    float momentary_power_sum = 0.0;
-    unsigned int momentary_power_count = 0;
-
-    std::vector<std::vector<float>> lufs_container;
-
-    std::vector<float> momentary_power;
 
     std::atomic<float>* last_momentary_loudness = nullptr;
     std::atomic<float>* integrated_loudness = nullptr;
