@@ -51,12 +51,19 @@ AudioStatisticsPluginAudioProcessor::AudioStatisticsPluginAudioProcessor()
                                                                             "IntegratedLoudness",            // parameter name
                                                                             -20000,              // minimum value
                                                                             20000,              // maximum value
+                                                                            -20000),
+                                std::make_unique<juce::AudioParameterFloat>("short_term_loudness",            // parameterID
+                                                                            "ShortTermLoudness",            // parameter name
+                                                                            -20000,              // minimum value
+                                                                            20000,              // maximum value
                                                                             -20000)
 
                            }),
     filter1(),
     filter2(),
-    lufs_container()
+    lufs_container(),
+    bin_rms_container(),
+    segment_square_sums()
 #endif
 {
     zero_passes = valueTreeState.getRawParameterValue("zero_passes");
@@ -65,6 +72,7 @@ AudioStatisticsPluginAudioProcessor::AudioStatisticsPluginAudioProcessor()
     max = valueTreeState.getRawParameterValue("max");
     last_momentary_loudness = valueTreeState.getRawParameterValue("momentary_loudness");
     integrated_loudness = valueTreeState.getRawParameterValue("integrated_loudness");
+    short_term_loudness = valueTreeState.getRawParameterValue("short_term_loudness");
     clearCounters();
 
     filter1.setCoefficients(juce::IIRCoefficients(1.53512485958697, -2.69169618940638, 1.19839281085285, 0.0, -1.69065929318241, 0.73248077421585));
@@ -141,6 +149,7 @@ void AudioStatisticsPluginAudioProcessor::changeProgramName (int index, const ju
 void AudioStatisticsPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     this->sampleRate = sampleRate;
+    this->bin_length_in_samples = sampleRate / 10;
 }
 
 void AudioStatisticsPluginAudioProcessor::releaseResources()
@@ -201,8 +210,8 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
         for (int channel = 0; channel < totalNumInputChannels; ++channel)
         {
             previous_samples[channel] = *buffer.getWritePointer(channel);
-            //samples_count_per_channel[channel] = 0;
-            //square_sum_per_channel[channel] = 0;
+            samples_count_per_channel[channel] = 0;
+            square_sum_per_channel[channel] = 0;
         }
 
     }
@@ -239,54 +248,125 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
         if (channel == 0) {
             //https://www.mathworks.com/help/audio/ref/integratedloudness.html
             //https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1770-5-202311-I!!PDF-E.pdf
+            //https://github.com/klangfreund/LUFSMeter/blob/master/Ebu128LoudnessMeter.cpp
 
 
-
+            // Copy buffer so the original data won't get modified
             float* channelData_copy = new float[samplesNum];
             memcpy(channelData_copy, channelData, sizeof(float) * samplesNum);
 
+            // Filter samples
             filter1.processSamples(channelData_copy, samplesNum);
             filter2.processSamples(channelData_copy, samplesNum);
 
+            // Fill the bins with averages
             for (float* i = channelData; i < channelData + samplesNum; i++) {
-                if (lufs_counter == 0) {
-                    lufs_container.push_back(std::vector<float>());
+
+                //// OLD VERSION
+                //if (lufs_counter == 0) {
+                //    lufs_container.push_back(std::vector<float>());
+                //}
+
+                //lufs_container.back().push_back(*i);
+                //lufs_counter += 1;
+            
+                //if (lufs_counter >= sampleRate / 10 ) {
+                //    lufs_counter = 0;
+                //}
+
+                // NEW VERSION
+
+                if (current_position_in_filling_bin == 0) {
+                    bin_rms_container.push_back(0);
+                    //bin_sums.push_back(0);
                 }
 
-                lufs_container.back().push_back(*i);
-                lufs_counter += 1;
-            
-                if (lufs_counter >= sampleRate / 10 ) {
-                    lufs_counter = 0;
+                bin_rms_container.back() += (*i * *i);
+                //bin_sums.back() += *i;
+                current_position_in_filling_bin++;
+
+                if (current_position_in_filling_bin >= bin_length_in_samples) {
+                    current_position_in_filling_bin = 0;
+                    bin_rms_container.back() = bin_rms_container.back() / bin_length_in_samples;
                 }
             }
 
-            while (lufs_container.size() > 4) {
-                unsigned int sample_counter = 0;
-                float short_rms = 0.0;
-                float short_mean_momentary_power = 0.0;
-                for (auto row = lufs_container.begin(); row < lufs_container.begin() + 4; row++){
-                    for (auto i = row->begin(); i < row->end(); i++) {
-                        short_rms = short_rms + (*i * *i);
-                        short_mean_momentary_power += (*i);
-                        sample_counter++;
+            //jassert(bin_square_sums.size() == bin_sums.size());
+
+            // Proceed to any LUFS calculation ONLY if new bin was added (and there is AT LEAST default 4 bins stored)
+            // Call multiple time if there are multiple new bins to be processed
+            // processed_bin_counter starts at 3, so adding FULL 4th bin will cause this while to be called for the first time.
+            while ((bin_rms_container.size()-1 > processed_bin_counter) || ((bin_rms_container.size() > processed_bin_counter) && (current_position_in_filling_bin == 0))) {
+                // Calculate Momentary LUFS
+                float momentary_rms = 0.0;
+                unsigned short int position_from_back = bin_rms_container.size() - processed_bin_counter - ((current_position_in_filling_bin == 0) ? 1 : 2);
+                if (current_position_in_filling_bin == 0) { // If last bin is full, take last 4 bins
+                    momentary_rms = std::accumulate(bin_rms_container.end() - bins_in_400ms - position_from_back, bin_rms_container.end() - position_from_back, 0.0) / bins_in_400ms;
+                }
+                else { // If last bin is not full
+                    momentary_rms = std::accumulate(bin_rms_container.end() - position_from_back - bins_in_400ms-1, bin_rms_container.end() - position_from_back -1, 0.0) / bins_in_400ms;
+                }
+                // (sum of squares of samples in the last 400ms)/(no. of samples in the last 400ms)
+                // Also called momentary power of segment
+
+                processed_bin_counter++; // New bin is being processed - increase the amount of bins processed
+
+                float momentary_loudness = -0.691 + 10 * std::log10(momentary_rms);
+                if (momentary_loudness > -70.0) {
+                    // First gate passed - display momentary loudness of current segment
+                    last_momentary_loudness->store(momentary_loudness);
+
+                    relative_threshold_acumulator += momentary_rms;
+                    relative_threshold_segments_count++;
+
+                    // rms over the whole measurement and relative treshold calculation
+                    //float rms_from_the_begginig = std::accumulate(segment_square_sums.begin(), segment_square_sums.end(), 0.0) / segment_square_sums.size();
+                    //float rms_from_the_begginig = std::accumulate(bin_rms_container.begin(), bin_rms_container.end(), 0.0) / bin_rms_container.size();
+                    float rms_from_the_begginig = relative_threshold_acumulator / relative_threshold_segments_count;
+
+                    float relative_treshold = -10.691 + 10.0 * std::log10(rms_from_the_begginig);
+
+                    // TODO - Is this gate correct?
+                    if ((momentary_rms >= relative_treshold) || (segment_square_sums.size() == 0)) {
+                        // Second gate passed
+                        segment_square_sums.push_back(momentary_rms);
+                        integrated_loudness->store(-0.691 + 10.0 * std::log10(std::accumulate(segment_square_sums.begin(), segment_square_sums.end(), 0.0) / segment_square_sums.size()));
                     }
                 }
-                lufs_container.erase(lufs_container.begin());
 
-                short_rms = short_rms / sample_counter;
-                short_mean_momentary_power = short_mean_momentary_power / sample_counter;
-
-                float relative_treshold = -0.691 + 10 * std::log10(short_mean_momentary_power) - 10;
-                float momentary_loudness = -0.691 + 10 * std::log10(short_rms);
-
-                if (momentary_loudness >= -70 && short_rms >= relative_treshold) {
-                    last_momentary_loudness->store(momentary_loudness);
-                    momentary_power_sum += short_rms;
-                    momentary_power_count += 1;
-                    integrated_loudness->store(-0.691 + 10 * std::log10(momentary_power_sum / momentary_power_count));
+                // if buffer is already long enough, we can also calculate short-term LUFS
+                if (bin_rms_container.size() >= bins_in_3s) {
+                    float short_term_rms = std::accumulate(bin_rms_container.end() - bins_in_3s, bin_rms_container.end(), 0.0) / (bins_in_3s);
+                    short_term_loudness->store(-0.691 + 10.0 * std::log10(short_term_rms));
                 }
             }
+
+            //while (lufs_container.size() > 4) {
+            //    unsigned int sample_counter = 0;
+            //    float short_rms = 0.0;
+            //    float short_mean_momentary_power = 0.0;
+            //    for (auto row = lufs_container.begin(); row < lufs_container.begin() + 4; row++){
+            //        for (auto i = row->begin(); i < row->end(); i++) {
+            //            short_rms = short_rms + (*i * *i);
+            //            short_mean_momentary_power += (*i);
+            //            sample_counter++;
+            //        }
+            //    }
+            //    lufs_container.erase(lufs_container.begin());
+
+            //    short_rms = short_rms / sample_counter;
+            //    short_mean_momentary_power = short_mean_momentary_power / sample_counter;
+
+            //    float relative_treshold = -0.691 + 10 * std::log10(short_mean_momentary_power) - 10;
+            //    float momentary_loudness = -0.691 + 10 * std::log10(short_rms);
+
+            //    if (momentary_loudness >= -70 && short_rms >= relative_treshold) {
+            //        //last_momentary_loudness->store(momentary_loudness);
+            //        momentary_power_sum += short_rms;
+            //        momentary_power_count += 1;
+            //        //integrated_loudness->store(-0.691 + 10 * std::log10(momentary_power_sum / momentary_power_count));
+            //    }
+            //}
         }
 
 
@@ -341,9 +421,15 @@ void AudioStatisticsPluginAudioProcessor::clearCounters()
     max->store(-std::numeric_limits<double>::infinity());
     last_momentary_loudness->store(-std::numeric_limits<double>::infinity());
     integrated_loudness->store(-std::numeric_limits<double>::infinity());
+    short_term_loudness->store(-std::numeric_limits<double>::infinity());
 
-    momentary_power_sum = 0.0;
-    momentary_power_count = 0;
+    processed_bin_counter = bins_in_400ms - 1;
+    bin_rms_container.clear();
+    segment_square_sums.clear();
+    current_position_in_filling_bin = 0;
+
+    //momentary_power_sum = 0.0;
+    //momentary_power_count = 0;
 
     if (previous_length == nullptr) {
         return;

@@ -21,6 +21,7 @@ AudioStatisticsPluginAudioProcessorEditor::AudioStatisticsPluginAudioProcessorEd
     addAndMakeVisible(&MaxTextBox);
     addAndMakeVisible(&MomentaryLoudnessBox);
     addAndMakeVisible(&IntegratedLoudnessBox);
+    addAndMakeVisible(&ShortTermLoudnessBox);
 
     resetButton.setButtonText("Reset Statistics");
     resetButton.onClick = [this]() {
@@ -36,7 +37,7 @@ AudioStatisticsPluginAudioProcessorEditor::AudioStatisticsPluginAudioProcessorEd
 
     setSize (520, 300);
 
-    this->startTimer(100);
+    this->startTimer(50);
 }
 
 AudioStatisticsPluginAudioProcessorEditor::~AudioStatisticsPluginAudioProcessorEditor()
@@ -53,6 +54,7 @@ void AudioStatisticsPluginAudioProcessorEditor::paint (juce::Graphics& g)
     MaxTextBox.setBounds(10, 100, 500, 20);
     MomentaryLoudnessBox.setBounds(10, 130, 500, 20);
     IntegratedLoudnessBox.setBounds(10, 160, 500, 20);
+    ShortTermLoudnessBox.setBounds(10, 190, 500, 20);
 
     resetButton.setBounds(getWidth()/2+10, getHeight() - 60, getWidth() / 2 -20, 50);
     updateButton.setBounds(10, getHeight() - 60, getWidth() / 2 - 20, 50);
@@ -72,6 +74,7 @@ void AudioStatisticsPluginAudioProcessorEditor::updateValues()
     MaxTextBox.setText("MAX: " + parameterToString("max"), juce::NotificationType::dontSendNotification);
     MomentaryLoudnessBox.setText("Momentary LUFS: " + parameterToString("momentary_loudness"), juce::NotificationType::dontSendNotification);
     IntegratedLoudnessBox.setText("Integrated LUFS: " + parameterToString("integrated_loudness"), juce::NotificationType::dontSendNotification);
+    ShortTermLoudnessBox.setText("Short Term LUFS: " + parameterToString("short_term_loudness"), juce::NotificationType::dontSendNotification);
 }
 
 std::string AudioStatisticsPluginAudioProcessorEditor::parameterToString(std::string param_name)

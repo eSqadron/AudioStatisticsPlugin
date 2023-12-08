@@ -44,6 +44,7 @@ private:
     juce::Label MaxTextBox;
     juce::Label MomentaryLoudnessBox;
     juce::Label IntegratedLoudnessBox;
+    juce::Label ShortTermLoudnessBox;
 
     juce::TextButton resetButton;
     juce::TextButton updateButton;
