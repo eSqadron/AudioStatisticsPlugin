@@ -5,6 +5,10 @@
               jucerFormatVersion="1" pluginFormats="buildVST3">
   <MAINGROUP id="ByKIfS" name="AudioStatisticsPlugin">
     <GROUP id="{3B53FD46-97B0-6886-2D9A-694BC198071B}" name="Source">
+      <GROUP id="{99864C35-1FC8-496D-78A8-0360C650E38B}" name="Calculatons">
+        <FILE id="Et9f7T" name="LufsCalc.cpp" compile="1" resource="0" file="Source/Calculations/LufsCalc.cpp"/>
+        <FILE id="B0i4lU" name="LufsCalc.h" compile="0" resource="0" file="Source/Calculations/LufsCalc.h"/>
+      </GROUP>
       <FILE id="mZEvcl" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="wckNJQ" name="PluginProcessor.h" compile="0" resource="0"
