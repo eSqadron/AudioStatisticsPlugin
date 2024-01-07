@@ -6,8 +6,14 @@
   <MAINGROUP id="ByKIfS" name="AudioStatisticsPlugin">
     <GROUP id="{3B53FD46-97B0-6886-2D9A-694BC198071B}" name="Source">
       <GROUP id="{99864C35-1FC8-496D-78A8-0360C650E38B}" name="Calculatons">
-        <FILE id="Et9f7T" name="LufsCalc.cpp" compile="1" resource="0" file="Source/Calculations/LufsCalc.cpp"/>
-        <FILE id="B0i4lU" name="LufsCalc.h" compile="0" resource="0" file="Source/Calculations/LufsCalc.h"/>
+        <GROUP id="{F512B9E1-AD6A-A803-27E9-D24C1F07C48F}" name="LUFS">
+          <FILE id="ARmisB" name="LufsCalculations.cpp" compile="1" resource="0"
+                file="Source/Calculations/LUFS/LufsCalculations.cpp"/>
+          <FILE id="roTodv" name="LufsCalculations.h" compile="0" resource="0"
+                file="Source/Calculations/LUFS/LufsCalculations.h"/>
+          <FILE id="jCwBb6" name="LufsChannel.cpp" compile="1" resource="0" file="Source/Calculations/LUFS/LufsChannel.cpp"/>
+          <FILE id="wZstpv" name="LufsChannel.h" compile="0" resource="0" file="Source/Calculations/LUFS/LufsChannel.h"/>
+        </GROUP>
       </GROUP>
       <FILE id="mZEvcl" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

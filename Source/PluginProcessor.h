@@ -9,7 +9,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "Calculations/LufsCalc.h"
+#include "Calculations/LUFS/LufsCalculations.h"
 
 //==============================================================================
 /**
