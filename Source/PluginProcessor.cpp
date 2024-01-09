@@ -25,38 +25,38 @@ AudioStatisticsPluginAudioProcessor::AudioStatisticsPluginAudioProcessor()
                                 std::make_unique<juce::AudioParameterInt>("zero_passes",            // parameterID
                                                                             "ZeroPasses",            // parameter name
                                                                             0,              // minimum value
-                                                                            3.402823466e+38,              // maximum value
+                                                                            2147483647,              // maximum value
                                                                             0),
                                 std::make_unique<juce::AudioParameterFloat>("rms",            // parameterID
                                                                             "RMS",            // parameter name
-                                                                            -200,              // minimum value
-                                                                            200,              // maximum value
+                                                                            -1,              // minimum value
+                                                                            1,              // maximum value
                                                                             0),
                                 std::make_unique<juce::AudioParameterFloat>("max",            // parameterID
                                                                             "Max",            // parameter name
+                                                                            -1,              // minimum value
+                                                                            1,              // maximum value
+                                                                            -1),
+                                std::make_unique<juce::AudioParameterFloat>("min",            // parameterID
+                                                                            "Min",            // parameter name
+                                                                            -1,              // minimum value
+                                                                            1,              // maximum value
+                                                                            1),
+                                std::make_unique<juce::AudioParameterFloat>("momentary_loudness",            // parameterID
+                                                                            "MomentaryLoudness",            // parameter name
                                                                             -200,              // minimum value
                                                                             200,              // maximum value
                                                                             -200),
-                                std::make_unique<juce::AudioParameterFloat>("min",            // parameterID
-                                                                            "Min",            // parameter name
-                                                                            -200,              // minimum value
-                                                                            200,              // maximum value
-                                                                            200),
-                                std::make_unique<juce::AudioParameterFloat>("momentary_loudness",            // parameterID
-                                                                            "MomentaryLoudness",            // parameter name
-                                                                            -20000,              // minimum value
-                                                                            20000,              // maximum value
-                                                                            -20000),
                                 std::make_unique<juce::AudioParameterFloat>("integrated_loudness",            // parameterID
                                                                             "IntegratedLoudness",            // parameter name
-                                                                            -20000,              // minimum value
-                                                                            20000,              // maximum value
-                                                                            -20000),
+                                                                            -200,              // minimum value
+                                                                            200,              // maximum value
+                                                                            -200),
                                 std::make_unique<juce::AudioParameterFloat>("short_term_loudness",            // parameterID
                                                                             "ShortTermLoudness",            // parameter name
-                                                                            -20000,              // minimum value
-                                                                            20000,              // maximum value
-                                                                            -20000)
+                                                                            -200,              // minimum value
+                                                                            200,              // maximum value
+                                                                            -200)
 
                            }),
     lufsCalc()
@@ -239,19 +239,6 @@ void AudioStatisticsPluginAudioProcessor::processBlock (juce::AudioBuffer<float>
 
         // LUFS
         lufsCalc.processBlock(buffer, totalNumInputChannels);
-
-        
-        //if (channel == 0) {
-
-
-
-        //        // if buffer is already long enough, we can also calculate short-term LUFS
-        //        if (bin_rms_container.size() >= bins_in_3s) {
-        //            float short_term_rms = std::accumulate(bin_rms_container.end() - bins_in_3s, bin_rms_container.end(), 0.0) / (bins_in_3s);
-        //            short_term_loudness->store(-0.691 + 10.0 * std::log10(short_term_rms));
-        //        }
-        //    }
-        //}
     }
     rms->store(temp_rms * 1.0 / totalNumInputChannels);
 }

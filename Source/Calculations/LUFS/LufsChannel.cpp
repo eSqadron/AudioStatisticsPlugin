@@ -20,6 +20,7 @@ LufsChannel::LufsChannel(unsigned int channel_no, juce::IIRFilter filter1, juce:
     bin_length_in_samples(0),
     segment_square_sums(),
     // TEMP variables:
+    short_term_rms(0.0),
     momentary_rms(0.0),
     position_from_back(0),
     momentary_loudness(0.0),
@@ -44,6 +45,7 @@ void LufsChannel::prepareToPlay(double sampleRate, int samplesPerBlock)
 void LufsChannel::clearCounters()
 {
     processed_bin_counter_for_momentary = bins_in_400ms - 1;
+    processed_bin_counter_for_short_term = bins_in_3s - 1;
     bin_rms_container.clear();
     segment_square_sums.clear();
     current_position_in_filling_bin = 0;
