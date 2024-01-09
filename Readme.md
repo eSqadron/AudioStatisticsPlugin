@@ -1,5 +1,6 @@
 # Audio Statistics Plugin
 .. Including live LUFS calculation!
+
 ![image](https://github.com/eSqadron/AudioStatisticsPlugin/assets/61045292/52d5e00f-0116-46f2-892a-a024c7c3547e)
 
 ## Plugin implements:
